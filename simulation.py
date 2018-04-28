@@ -6,9 +6,9 @@ from random import randint
 ##################################################
 #   Define simulation parameters
 
-N = 6                                # Number of 52-card packs in deck
-N_PLAYERS = 5                        # Number of players (other than dealer)
-ROUNDS_BEFORE_RESHUFFLE = 10         # Number of hands played before deck reset to full
+N = 1                                # Number of 52-card packs in deck
+N_PLAYERS = 8                        # Number of players (other than dealer)
+ROUNDS_BEFORE_RESHUFFLE = 7         # Number of hands played before deck reset to full
 SOFT_17_HIT = True                   # Boolean if dealer must hit on 'soft' 17 (contains ace)
 N_SIMULATIONS = 1                    # Number of games to simulate
 
@@ -25,7 +25,7 @@ class Card():
 
 
 class Deck():
-    def __init__(self):
+    def __init__(self, N):
         self.count = N * 52
         self.suits = ['Clubs','Diamonds','Hearts','Spades']
         self.cards = [Card(suit,name,packid,value,(str(i)+'_'+str(j)+'_'+str(k))) for i, suit in enumerate(self.suits)                                                 
@@ -33,7 +33,6 @@ class Deck():
                                                                     '7':7,'8':8,'9':9,'10':10,
                                                                     'Jack':10,'Queen':10,'King':10,'Ace':11}.items())
                                                  for k,packid in enumerate(range(N))]     
-                                                                                               
     def draw_cards(self,n_cards):
         # Select cards at random and move from deck to hands
         cid = randint(0, self.count)
@@ -76,7 +75,7 @@ class Dealer():
 
 class Game():
     def __init__(self):
-        self.deck = Deck()
+        self.deck = Deck(N)
         self.players = [Player() for player in range(N_PLAYERS)]
         self.dealer = Dealer()
     
@@ -91,11 +90,21 @@ class Game():
         # Each player chooses to hit or stick at random
         for player in self.players:
             
-            while player.total < 21:
+            while 1==1:
+                if player.total > 21:
+                    if any(card.number == "Ace" for card in player.hand):
+                        player.hand[0].value -= 10   # Shouldn't strictly matter which card we drop by 10    
+                        if randint(0,1) == 1:
+                            player.hit(self)
+                        else:
+                            break # Player stands
+                        player.hit(self)                    
+                    else:                    
+                        break # Player Bust    
                 if randint(0,1) == 1:
                     player.hit(self)
                 else:
-                    break   # Player sticks
+                    break   # Player stands
 
         # Dealer plays according to mandated rules
         self.dealer.play(self)
@@ -121,6 +130,9 @@ def run_simulation(n_rounds=1):
 
 if __name__ == "__main__":
     
-    for i in range(N_SIMULATIONS):
-        run_simulation(n_rounds=ROUNDS_BEFORE_RESHUFFLE)
+    #for i in range(N_SIMULATIONS):
+    #    run_simulation(n_rounds=ROUNDS_BEFORE_RESHUFFLE)
  
+    newgame = Game()
+    for suit in newgame.deck.suits:
+        print(sum([card.value for card in newgame.deck.cards if card.suit == suit]))
